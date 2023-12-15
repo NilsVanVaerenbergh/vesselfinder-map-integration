@@ -1,0 +1,27 @@
+version: '3'
+services:
+  web:
+    image: nginx:stable-alpine3.17-slim
+    ports:
+      - 80
+    networks:
+      - proxy
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./index.html:/data/www/index.html:ro
+    command: [nginx-debug, '-g', 'daemon off;']
+    labels:
+      - com.host.description=label
+      - traefik.docker.network=proxy
+      - traefik.enable=true
+      - traefik.http.routers.vesselfinder-secure.entrypoints=https
+      - traefik.http.routers.vesselfinder-secure.rule=Host(`vesselfinder-example.vanvaerenbergh.online`)
+      - traefik.http.routers.vesselfinder-secure.service=vesselfinder
+      - traefik.http.routers.vesselfinder-secure.tls=true
+      - traefik.http.routers.vesselfinder.entrypoints=http
+      - traefik.http.routers.vesselfinder.rule=Host(`vesselfinder-example.vanvaerenbergh.online`)
+      - traefik.http.services.vesselfinder.loadbalancer.server.port=80
+      - traefik.middlewares.vesselfinder-https-redirect.redirectscheme.scheme=https
+networks:
+ proxy:
+  external: true
